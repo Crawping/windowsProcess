@@ -1,0 +1,91 @@
+;
+; processFilter.inf
+;
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=Sample ; TODO: edit Class
+ClassGuid={78A1C341-4539-11d3-B88D-00C04FAD5171} ; TODO: edit ClassGuid
+Provider=%ManufacturerName%
+CatalogFile=processFilter.cat
+DriverVer= ; TODO: set DriverVer in stampinf property pages
+
+[DestinationDirs]
+DefaultDestDir = 12
+
+; ================= Class section =====================
+
+[ClassInstall32]
+Addreg=SampleClassReg
+
+[SampleClassReg]
+HKR,,,0,%ClassName%
+HKR,,Icon,,-5
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+processFilter.sys  = 1,,
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+%processFilter.DeviceDesc%=processFilter_Device, Root\processFilter ; TODO: edit hw-id
+
+[processFilter_Device.NT]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+processFilter.sys
+
+;-------------- Service installation
+[processFilter_Device.NT.Services]
+AddService = processFilter,%SPSVCINST_ASSOCSERVICE%, processFilter_Service_Inst
+
+; -------------- processFilter driver install sections
+[processFilter_Service_Inst]
+DisplayName    = %processFilter.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\processFilter.sys
+LoadOrderGroup = Extended Base
+
+;
+;--- processFilter_Device Coinstaller installation ------
+;
+
+[DestinationDirs]
+processFilter_Device_CoInstaller_CopyFiles = 11
+
+[processFilter_Device.NT.CoInstallers]
+AddReg=processFilter_Device_CoInstaller_AddReg
+CopyFiles=processFilter_Device_CoInstaller_CopyFiles
+
+[processFilter_Device_CoInstaller_AddReg]
+HKR,,CoInstallers32,0x00010000, "WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll,WdfCoInstaller"
+
+[processFilter_Device_CoInstaller_CopyFiles]
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll
+
+[SourceDisksFiles]
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll=1 ; make sure the number matches with SourceDisksNames
+
+[processFilter_Device.NT.Wdf]
+KmdfService =  processFilter, processFilter_wdfsect
+[processFilter_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+[Strings]
+SPSVCINST_ASSOCSERVICE= 0x00000002
+ManufacturerName="" ; TODO: add ManufacturerName
+ClassName="Samples" ; TODO: edit ClassName
+DiskName = "processFilter Installation Disk"
+processFilter.DeviceDesc = "processFilter Device"
+processFilter.SVCDESC = "processFilter Service"
